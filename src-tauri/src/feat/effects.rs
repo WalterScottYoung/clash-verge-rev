@@ -96,6 +96,8 @@ verge_registry! {
     enable_auto_delay_detection => NoEffect;
     auto_delay_detection_interval_minutes => NoEffect;
     enable_builtin_enhanced => NoEffect;
+    per_app_enable => [ClashConfig];
+    per_app_apps => [ClashConfig];
     proxy_layout_column => NoEffect;
     test_list => NoEffect;
     auto_log_clean => NoEffect;

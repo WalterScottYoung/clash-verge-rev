@@ -963,11 +963,61 @@ pub async fn enhance(
 
     let config = cleanup_proxy_groups(config);
     let config = use_sort(config);
+    let config = apply_per_app_rules(config).await;
 
     let mut exists_keys_set = HashSet::new();
     exists_keys_set.extend(exists_keys);
 
     Ok((config, exists_keys_set, result_map, dns_override))
+}
+
+/// PER-APP whitelist: prepend a `NOT(OR(PROCESS-NAME...))` rule to `rules`.
+///
+/// Listed processes keep the profile's normal routing; everything else hits the
+/// first rule and is sent DIRECT. Process lookup needs a privileged (root) core
+/// on macOS, otherwise the lookup fails, `NOT` always matches, and all traffic
+/// ends up DIRECT.
+async fn apply_per_app_rules(mut config: Mapping) -> Mapping {
+    let verge = Config::verge().await;
+    let verge_arc = verge.latest_arc();
+    let enabled = verge_arc.per_app_enable.unwrap_or(false);
+    let apps = verge_arc.per_app_apps.clone().unwrap_or_default();
+    drop(verge_arc);
+    drop(verge);
+
+    if !enabled {
+        return config;
+    }
+
+    let conditions = apps
+        .iter()
+        .map(|app| app.trim())
+        .filter(|app| !app.is_empty())
+        .map(|app| format!("(PROCESS-NAME,{app})"))
+        .collect::<Vec<_>>();
+
+    if conditions.is_empty() {
+        return config;
+    }
+
+    let rule = format!("NOT,((OR,({}))),DIRECT", conditions.join(","));
+
+    let mut rules = config
+        .get("rules")
+        .and_then(|value| value.as_sequence())
+        .cloned()
+        .unwrap_or_default();
+
+    // Keep the injection idempotent across regenerations.
+    rules.retain(|item| {
+        !item
+            .as_str()
+            .is_some_and(|text| text.starts_with("NOT,((OR,((PROCESS-NAME"))
+    });
+    rules.insert(0, Value::from(rule));
+    config.insert(Value::from("rules"), Value::Sequence(rules));
+
+    config
 }
 
 #[cfg(test)]

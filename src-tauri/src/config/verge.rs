@@ -141,6 +141,13 @@ pub struct IVerge {
 
     pub enable_builtin_enhanced: Option<bool>,
 
+    /// Per-app routing: only the listed processes are proxied, everything else goes DIRECT.
+    pub per_app_enable: Option<bool>,
+
+    /// Process names for PER-APP, matched by PROCESS-NAME (e.g. Safari, com.apple.WebKit.Networking).
+    #[specta(type = Option<Vec<std::string::String>>)]
+    pub per_app_apps: Option<Vec<String>>,
+
     pub proxy_layout_column: Option<u8>,
 
     pub test_list: Option<Vec<IVergeTestItem>>,
@@ -505,6 +512,8 @@ impl IVerge {
         patch!(enable_auto_delay_detection);
         patch!(auto_delay_detection_interval_minutes);
         patch!(enable_builtin_enhanced);
+        patch!(per_app_enable);
+        patch!(per_app_apps);
         patch!(proxy_layout_column);
         patch!(test_list);
         patch!(auto_log_clean);

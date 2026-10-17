@@ -23,6 +23,7 @@ import { DnsViewer } from './mods/dns-viewer'
 import { HeaderConfiguration } from './mods/external-controller-cors'
 import { GuardState } from './mods/guard-state'
 import { NetworkInterfaceViewer } from './mods/network-interface-viewer'
+import { PerAppViewer } from './mods/per-app-viewer'
 import { SettingItem, SettingList } from './mods/setting-comp'
 import { TunnelsViewer } from './mods/tunnels-viewer'
 import { WebUIViewer } from './mods/web-ui-viewer'
@@ -37,7 +38,7 @@ const SettingClash = ({ onError }: Props) => {
   const { t } = useTranslation()
 
   const { clash, version, mutateClash, patchClash } = useClash()
-  const { verge, mutateVerge } = useVerge()
+  const { verge, mutateVerge, patchVerge } = useVerge()
   const { current: currentProfile } = useProfiles()
   const dnsEnabled = currentProfile
     ? (verge?.profile_dns_settings?.[currentProfile.uid!]?.enabled ??
@@ -68,6 +69,7 @@ const SettingClash = ({ onError }: Props) => {
   const dnsRef = useRef<DialogRef>(null)
   const corsRef = useRef<DialogRef>(null)
   const tunnelRef = useRef<DialogRef>(null)
+  const perAppRef = useRef<DialogRef>(null)
 
   const onSwitchFormat = (_e: any, value: boolean) => value
   const onChangeData = (patch: Partial<IConfigData>) => {
@@ -155,6 +157,7 @@ const SettingClash = ({ onError }: Props) => {
       </BaseDialog>
       <HeaderConfiguration ref={corsRef} />
       <TunnelsViewer ref={tunnelRef} />
+      <PerAppViewer ref={perAppRef} />
       <SettingItem
         label={t('settings.sections.clash.form.fields.allowLan')}
         extra={
@@ -200,6 +203,26 @@ const SettingClash = ({ onError }: Props) => {
           checked={dnsEnabled}
           disabled={!currentProfile || dnsUpdating || dnsConfirmation !== null}
           onChange={(_, checked) => handleDnsToggle(checked)}
+        />
+      </SettingItem>
+
+      <SettingItem
+        label="按 App 分流（白名单）"
+        extra={
+          <TooltipIcon
+            title="只有名单内的 App 走代理；Safari 需要写 com.apple.WebKit.Networking；要求内核以 Service 模式运行"
+            color={'inherit'}
+            icon={SettingsRounded}
+            onClick={() => perAppRef.current?.open()}
+          />
+        }
+      >
+        <Switch
+          edge="end"
+          checked={verge?.per_app_enable ?? false}
+          onChange={(_, checked) =>
+            void patchVerge({ per_app_enable: checked }).catch(onError)
+          }
         />
       </SettingItem>
 
