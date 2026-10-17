@@ -993,7 +993,14 @@ async fn apply_per_app_rules(mut config: Mapping) -> Mapping {
         .iter()
         .map(|app| app.trim())
         .filter(|app| !app.is_empty())
-        .map(|app| format!("(PROCESS-NAME,{app})"))
+        .map(|app| {
+            // Wildcards use PROCESS-NAME-WILDCARD so helper names may change freely.
+            if app.contains('*') {
+                format!("(PROCESS-NAME-WILDCARD,{app})")
+            } else {
+                format!("(PROCESS-NAME,{app})")
+            }
+        })
         .collect::<Vec<_>>();
 
     if conditions.is_empty() {

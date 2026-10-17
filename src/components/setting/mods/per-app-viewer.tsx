@@ -92,7 +92,7 @@ export function PerAppViewer({ ref }: { ref?: Ref<DialogRef> }) {
             minRows={6}
             maxRows={12}
             label="进程名（每行一个，按 PROCESS-NAME 匹配）"
-            placeholder={'Safari\ncom.apple.WebKit.Networking\nChatGPT\nCursor'}
+            placeholder={'Safari\ncom.apple.WebKit.Networking\nChatGPT\nCursor\ngit-remote-*'}
             value={text}
             onChange={(e) => setText(e.target.value)}
             slotProps={{ input: { style: { fontFamily: 'monospace', fontSize: 13 } } }}
@@ -101,8 +101,8 @@ export function PerAppViewer({ ref }: { ref?: Ref<DialogRef> }) {
 
         <ListItem sx={{ padding: '5px 2px' }}>
           <Typography variant="body2" color="text.secondary" sx={{ fontStyle: 'italic' }}>
-            提示：Safari 的网页请求由 com.apple.WebKit.Networking 发起，只写 Safari
-            抓不到；Electron 类应用（Cursor/Figma 等）的网络请求常在 App bundle 内的
+            提示：支持通配符（如 git-remote-*，会生成 PROCESS-NAME-WILDCARD）；
+            Safari 的网页请求由 com.apple.WebKit.Networking 发起，只写 Safari 抓不到；Electron 类应用（Cursor/Figma 等）的网络请求常在 App bundle 内的
             Helper 进程里。另外这个功能依赖内核以 Service 模式运行（root），
             否则判定不到进程，所有 App 都会变成直连。
           </Typography>
